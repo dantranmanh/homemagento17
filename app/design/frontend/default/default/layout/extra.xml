@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <default>
+    </default>
+    <extra_index_index>
+        <reference name="content">
+            <block type="extra/extra" name="extra" template="extra/extra.phtml" />
+        </reference>
+    </extra_index_index>
+</layout> 

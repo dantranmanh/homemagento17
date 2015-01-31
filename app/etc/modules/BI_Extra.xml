@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <BI_Extra>
+            <active>true</active>
+            <codePool>local</codePool>
+        </BI_Extra>
+    </modules>
+</config> 

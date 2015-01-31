@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <extra_adminhtml_extra_index>
+        <reference name="content">
+            <block type="extra/adminhtml_extra" name="extra" />
+        </reference>
+    </extra_adminhtml_extra_index>
+</layout>
