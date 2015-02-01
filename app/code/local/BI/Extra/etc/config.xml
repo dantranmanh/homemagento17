@@ -85,6 +85,11 @@
                     </extra>
                 </entities>
             </extra_mysql4>
+			<catalog>
+				<rewrite>					
+					<convert_adapter_product>BI_Extra_Model_Convert_Adapter_Product</convert_adapter_product>
+				</rewrite>
+			</catalog>
         </models>
         <resources>
             <extra_setup>
@@ -110,21 +115,23 @@
             <extra>
                 <class>BI_Extra_Block</class>
             </extra>
+			<blocks>
+			<tag>
+				<rewrite>
+					<product_list>Inchoo_Tag_Block_Product_List</product_list>
+				</rewrite>
+			</tag>
+		</blocks>
+			<adminhtml>
+				<rewrite>
+					<system_convert_gui_edit_tab_wizard>BI_Extra_Block_Adminhtml_System_Convert_Gui_Edit_Tab_Wizard</system_convert_gui_edit_tab_wizard>
+				</rewrite>
+			</adminhtml>			
         </blocks>
         <helpers>
             <extra>
                 <class>BI_Extra_Helper</class>
             </extra>
-        </helpers>
-		<events>           
-            <checkout_controller_onepage_save_shipping_method>
-                <observers>
-                    <reset_ship_onepage_save_shipping_method>
-                        <class>extra/obsever</class>
-                        <method>resetshipping</method>
-                    </reset_ship_onepage_save_shipping_method>
-                </observers>
-            </checkout_controller_onepage_save_shipping_method>
-		</events>
+        </helpers>		
     </global>
 </config>
