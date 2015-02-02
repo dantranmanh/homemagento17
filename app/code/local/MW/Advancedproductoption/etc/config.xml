@@ -1,0 +1,321 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <MW_Advancedproductoption>
+            <version>1.4.1</version>
+        </MW_Advancedproductoption>
+    </modules>
+    <frontend>
+        <routers>
+            <advancedproductoption>
+                <use>standard</use>
+                <args>
+                    <module>MW_Advancedproductoption</module>
+                    <frontName>advancedproductoption</frontName>
+                </args>
+            </advancedproductoption>
+        </routers>
+        <layout>
+            <updates>
+                <advancedproductoption>
+                    <file>mw_advancedproductoption.xml</file>
+                </advancedproductoption>
+            </updates>
+        </layout>
+        <translate>
+			<modules>
+				<MW_Advancedproductoption>
+					<files>
+						<default>MW_Advancedproductoption.csv</default>
+					</files>
+				</MW_Advancedproductoption>
+			</modules>
+		</translate>
+    </frontend>
+    <admin>
+        <routers>
+			<advancedproductoption>
+				<use>admin</use>
+				<args>
+					<module>MW_Advancedproductoption</module>
+					<frontName>advancedproductoption</frontName>
+				</args>
+			</advancedproductoption>
+        </routers>
+    </admin>
+    <adminhtml>
+		<!-- <menu>
+			<advancedproductoption module="advancedproductoption">
+				<title>Advancedproductoption</title>
+				<sort_order>71</sort_order>               
+				<children>
+					<items module="advancedproductoption">
+						<title>Manage Items</title>
+						<sort_order>0</sort_order>
+						<action>advancedproductoption/adminhtml_advancedproductoption</action>
+					</items>
+				</children>
+			</advancedproductoption>
+		</menu> -->
+		<menu>
+			<catalog module="advancedproductoption">
+				<children>
+					<advancedproductoption module="advancedproductoption">
+						<title>Advanced Options</title>
+						<sort_order>23</sort_order>
+						<children>
+							<custom_template module="advancedproductoption">
+								<title>Manage Option Template</title>
+								<sort_order>1</sort_order>
+								<action>advancedproductoption/adminhtml_advancedproductoption</action>
+							</custom_template>
+							<configuration module="advancedproductoption">
+								<title>Configuration</title>
+								<sort_order>6</sort_order>
+								<action>adminhtml/system_config/edit/section/advancedproductoption</action>
+							</configuration>
+						</children> 
+					</advancedproductoption>
+				</children>
+			</catalog>
+		</menu> 
+		<acl>
+			<resources>
+				<all>
+					<title>Allow Everything</title>
+				</all>
+				<admin>
+					<children>
+						<catalog module="advancedproductoption">
+							<children>
+								<advancedproductoption module="advancedproductoption">
+									<title>Advanced Options</title>
+									<sort_order>23</sort_order>
+									<children>
+										<custom_template module="advancedproductoption">
+											<title>Manage Option Template</title>
+											<sort_order>1</sort_order>
+											<action>advancedproductoption/adminhtml_advancedproductoption</action>
+										</custom_template>
+									</children>               
+								</advancedproductoption>
+							</children>
+						</catalog>
+						<system>
+                            <children>
+                                <config>
+                                    <children>
+										<!-- ten la trung ten chi ra trong file config system.xml -->
+                                        <advancedproductoption translate="title" module="advancedproductoption">
+											<!-- Title display in role -->
+                                            <title>Advanced Product Option</title>
+                                        </advancedproductoption >
+                                    </children>
+                                </config>
+                            </children>
+                        </system>
+					</children>
+				</admin>
+			</resources>
+		</acl>
+		<layout>
+			<updates>
+				<advancedproductoption>
+					<file>mw_advancedproductoption.xml</file>
+				</advancedproductoption>
+			</updates>
+		</layout>
+		<translate>
+			<modules>
+				<MW_Advancedproductoption>
+					<files>
+						<default>MW_Advancedproductoption.csv</default>
+					</files>
+				</MW_Advancedproductoption>
+			</modules>
+		</translate>
+    </adminhtml>   
+    <global>
+        <models>
+            <advancedproductoption>
+                <class>MW_Advancedproductoption_Model</class>
+                <resourceModel>advancedproductoption_mysql4</resourceModel>
+            </advancedproductoption>
+            <advancedproductoption_mysql4>
+                <class>MW_Advancedproductoption_Model_Mysql4</class>
+                <entities>
+                    <advancedproductoption>
+                        <table>advancedproductoption</table>
+                    </advancedproductoption>
+                    <product_option>
+                    	<table>mw_catalog_product_option</table>
+                    </product_option>
+                    <product_option_price>
+                    	<table>mw_catalog_product_option_price</table>
+                    </product_option_price>
+                    <product_option_title>
+                    	<table>mw_catalog_product_option_title</table>
+                    </product_option_title>
+                    <product_option_type_value>
+                    	<table>mw_catalog_product_option_type_value</table>
+                    </product_option_type_value>
+                    <product_option_type_price>
+                    	<table>mw_catalog_product_option_type_price</table>
+                    </product_option_type_price>
+                    <product_option_type_title>
+                    	<table>mw_catalog_product_option_type_title</table>
+                    </product_option_type_title>
+                    <template>
+                    	<table>mw_catalog_product_option_template</table>
+                    </template>
+                    <templateproduct>
+                    	<table>mw_catalog_product_option_template_product</table>
+                    </templateproduct>
+                </entities>
+            </advancedproductoption_mysql4>
+            <!-- rewrite catalog model product option -->
+           	<catalog>
+               <rewrite>
+                   <product_option>MW_Advancedproductoption_Model_Mage_Product_Option</product_option>
+                   <product_option_type_default>MW_Advancedproductoption_Model_Mage_Product_Option_Type_Default</product_option_type_default>
+                   <product_option_type_date>MW_Advancedproductoption_Model_Mage_Product_Option_Type_Date</product_option_type_date>
+                   <product_option_type_file>MW_Advancedproductoption_Model_Mage_Product_Option_Type_File</product_option_type_file>
+                   <product_option_type_select>MW_Advancedproductoption_Model_Mage_Product_Option_Type_Select</product_option_type_select>
+                   <product_option_type_text>MW_Advancedproductoption_Model_Mage_Product_Option_Type_Text</product_option_type_text>
+               </rewrite>
+           </catalog>
+           <sales>
+           		<rewrite>
+           			<order_item>MW_Advancedproductoption_Model_Order_Item</order_item>
+           		</rewrite>
+           </sales>
+           <adminhtml>
+        		<rewrite>
+        			<system_config_source_product_options_price>MW_Advancedproductoption_Model_Mage_Adminhtml_System_Config_Source_Product_Options_Price</system_config_source_product_options_price>
+        		</rewrite>
+        	</adminhtml>
+           
+        </models>
+        <resources>
+            <advancedproductoption_setup>
+                <setup>
+                    <module>MW_Advancedproductoption</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </advancedproductoption_setup>
+            <advancedproductoption_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </advancedproductoption_write>
+            <advancedproductoption_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </advancedproductoption_read>
+        </resources>
+         
+        <rewrite>
+        	<advancedproductoption_adminhtml>
+        		<from><![CDATA[#^/admin/catalog_product/#]]></from>
+				<to>/advancedproductoption/adminhtml_catalog_product/</to>
+        	</advancedproductoption_adminhtml> 	                
+        </rewrite> 
+         
+        <events>
+        	<sales_order_place_after>
+        		<observers>
+                    <advancedproductoption>
+                        <type>singleton</type>
+                        <class>MW_Advancedproductoption_Model_Observer</class>
+                        <method>updateQtyPending</method>
+                    </advancedproductoption>
+                </observers>
+        	</sales_order_place_after>
+        	<sales_order_save_after>
+        		<observers>
+                    <advancedproductoption>
+                        <type>singleton</type>
+                        <class>MW_Advancedproductoption_Model_Observer</class>
+                        <method>updateQtyCanceled</method>
+                    </advancedproductoption>
+                </observers>
+        	</sales_order_save_after>
+			<controller_front_init_before>
+	            	<observers>
+	                    <advancedproductoption>
+	                        <type>singleton</type>
+	                        <class>advancedproductoption/observer</class>
+	                        <method>checkLicense</method>
+	                    </advancedproductoption>
+	                </observers>
+			</controller_front_init_before> 
+        <!-- catalog_controller_product_view -->
+        	<!--  <catalog_product_save_before>
+        		<observers>
+                    <advancedproductoption>
+                        <type>singleton</type>
+                        <class>MW_Advancedproductoption_Model_Observer</class>
+                        <method>customOptionsAdd</method>
+                    </advancedproductoption>
+                </observers>
+        	</catalog_product_save_before>
+        	<catalog_product_prepare_save>
+        		<observers>
+                    <advancedproductoption>
+                        <type>singleton</type>
+                        <class>MW_Advancedproductoption_Model_Observer</class>
+                        <method>catalogProductSaveAfter</method>
+                    </advancedproductoption>
+                </observers>
+        	</catalog_product_prepare_save>-->
+        </events>
+        <blocks>
+            <advancedproductoption>
+                <class>MW_Advancedproductoption_Block</class>
+            </advancedproductoption>
+            <!-- rewrite block custom option -->
+             <adminhtml>  
+                 <rewrite>  
+                     <catalog_product_edit_tab_options>MW_Advancedproductoption_Block_Adminhtml_Catalog_Product_Edit_Tab_Options</catalog_product_edit_tab_options>  
+                </rewrite>  
+            </adminhtml>
+            <catalog>
+	            <rewrite>  
+	            	<product_view_options_type_select>MW_Advancedproductoption_Block_Catalog_Product_View_Options_Type_Select</product_view_options_type_select>  
+	            	<product_view_options>MW_Advancedproductoption_Block_Catalog_Product_View_Options</product_view_options>
+	            </rewrite> 
+            </catalog> 
+        </blocks>
+        <helpers>
+            <advancedproductoption>
+                <class>MW_Advancedproductoption_Helper</class>
+            </advancedproductoption>
+            <catalog>
+            	<rewrite>
+            		<product_configuration>MW_Advancedproductoption_Helper_Configuration</product_configuration> 
+            	</rewrite>
+            </catalog>
+        </helpers>
+    </global>
+    <default>
+    	<advancedproductoption>
+    		<config>
+    			<enabled>1</enabled>
+    			<method_show_image>1</method_show_image>
+    			<image_size>80,80</image_size>
+    			<enabled_qty>0</enabled_qty>
+    		</config>
+    	</advancedproductoption>
+    </default>
+    <crontab>
+        <jobs>
+            <delete_image_cache>
+                <schedule><cron_expr>0 0 * * *</cron_expr></schedule>
+                <run><model>advancedproductoption/observer::runCron</model></run>
+            </delete_image_cache>
+        </jobs>
+    </crontab>
+</config>

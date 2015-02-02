@@ -1,0 +1,132 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2010 Magento Inc. (http://www.magentocommerce.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * .product-options img{border: 2px solid #C4C6C8;}
+ */
+
+?>
+<style type="text/css">
+.product-options ul.options-list li.mw_item {display: inline-table; width: auto; margin: 0px 10px 10px 0px; vertical-align: top;}
+.product-options img{border: 2px solid #C4C6C8;}
+.product-options ul.options-list li.mw_item img{margin: 0px 0px 10px 0px !important;}
+.product-options ul.options-list li.mw_item span.price-notice {padding-left: 0px; display: block;}
+</style>
+<?php /* @var $this Mage_Catalog_Block_Product_View_Options_Type_Select */ ?>
+<?php $_option = $this->getOption() ?>
+<?php 
+	// -- code them vao-----------------------------
+	$mw_count = 0;
+	foreach ($_option->getValues() as $_value) {
+		if($_value->getMwQty() > 0) $mw_count = $mw_count + 1;
+	}
+	$group_id = Mage::getSingleton('customer/session')->getCustomerGroupId();
+	$string_customer_groups = $_option ->getMwCustomerGroups();
+	$check_customer_groups_option = Mage::helper('advancedproductoption')->checkCustomerGroups($group_id, $string_customer_groups); 
+	$enabled_qty = Mage::getStoreConfig('advancedproductoption/config/enabled_qty');
+	$method_show_image = Mage::getStoreConfig('advancedproductoption/config/method_show_image');
+    $enabled_module = Mage::getStoreConfig('advancedproductoption/config/enabled');	
+    $image_size_config = Mage::getStoreConfig('advancedproductoption/config/image_size');
+	$array_image_size_config = explode(',',$image_size_config);	
+	$width_config = 80;
+	$height_config = 80;
+	if(isset($array_image_size_config[0])) $width_config = $array_image_size_config[0];
+	if(isset($array_image_size_config[1])) $height_config = $array_image_size_config[1];
+	$mw_condition_qty = $check_customer_groups_option;
+	if($enabled_qty && $_option->getMwQtyInput()) $mw_condition_qty = $check_customer_groups_option && $mw_count > 0;
+	if($mw_condition_qty){
+	// -- ket thuc code them vao-----------------------------
+?>
+
+<dt><label<?php if ($_option->getIsRequire()) echo ' class="required"' ?>><?php if ($_option->getIsRequire()) echo '<em>*</em>' ?><?php echo  $this->htmlEscape($_option->getTitle()) ?></label></dt>
+<?php if($enabled_module){?>
+<div class="truncated mw_truncated">
+	<div class="truncated_full_value">
+		<dl class="item-options">
+     		<dd><?php echo $this->htmlEscape($_option->getMwDescription());?></dd>
+     	</dl>     
+	</div>
+	<img src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA).'mw_advancedproductoption/icon/mw_icon_question_2.jpg'; ?>" style ="border: none;"/> 
+</div>
+<div class="clear"><span>&nbsp;</span></div>
+<?php }?>
+<?php 
+	foreach ($_option->getValues() as $_value) {
+
+		//$qty = $_value->getMwQty();
+		$option_id = $_value->getOptionId();
+		$option_type_id = "mw_image_select_".$option_id.'_'.$_value ->getOptionTypeId();
+		$class_option = "mw_class_image_select_".$option_id;
+		$image_name = $_value ->getMwImage();
+		if($image_name != '' && $enabled_module)
+		{	
+			$width = $_value->getMwImageSizeX();
+			$height = $_value->getMwImageSizeY();
+			$mw_title = $_value->getTitle();
+			if($width == 0 || $height == 0) {
+				$width = (int)$width_config;
+				$height = (int)$height_config;
+			}
+			//$image_name = str_replace('\\','/',$image_name);
+			//$image_url = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA).$image_name; 
+			$image_url = Mage::helper('advancedproductoption/image')->init($image_name)->keepAspectRatio(false)->constrainOnly(false)->keepFrame(false)->resize($width,$height);
+			
+			if($method_show_image == MW_Advancedproductoption_Model_Method::NORMAL){
+				$image = '<img id ="'.$option_type_id.'" class ="'.$class_option.'" style="vertical-align: middle; margin-left: 10px; margin-top: 10px;  display:none;" title="'.$mw_title.'" alt="'.$mw_title.'" src="'.$image_url.'" width="'.$width.'" height="'.$height.'" />';
+			}else if($method_show_image == MW_Advancedproductoption_Model_Method::CLICKIMAGE){
+				
+				if($_option->getType()== Mage_Catalog_Model_Product_Option::OPTION_TYPE_RADIO || $_option->getType() == Mage_Catalog_Model_Product_Option::OPTION_TYPE_CHECKBOX) $image = '';
+				else{
+					$image = '<img id ="'.$option_type_id.'" class ="'.$class_option.'" style="vertical-align: middle;margin-left: 10px; margin-top: 10px;" onclick="mw_selectOptionType.clickImage(this.id);" title="'.$mw_title.'" alt="'.$mw_title.'" src="'.$image_url.'"  width="'.$width.'" height="'.$height.'" />';
+				}
+			}
+			if($enabled_qty && $_option->getMwQtyInput() ){
+				if($_value->getMwQty() > 0) echo $image;
+			}else{
+				echo $image;
+			}
+			
+		}
+		
+		//echo $qty;
+	}
+
+
+?>
+
+<dd<?php if ($_option->decoratedIsLast){?> class="last"<?php }?>>
+    <div class="input-box">
+        <?php echo $this->getValuesHtml() ?>
+        <?php if ($enabled_module && $enabled_qty && $_option->getMwQtyInput() && ($_option->getType() == Mage_Catalog_Model_Product_Option::OPTION_TYPE_DROP_DOWN || $_option->getType() == Mage_Catalog_Model_Product_Option::OPTION_TYPE_RADIO || $_option->getType() == Mage_Catalog_Model_Product_Option::OPTION_TYPE_MULTIPLE )){ ?>
+	       <span class="qty-holder">
+	    		<label>Qty: <input type="text" onkeypress="if(event.keyCode==13){opConfig.reloadPrice(); }" onchange="opConfig.reloadPrice(); " name="mw_options_<?php echo $_option->getId() ?>_qty" id="mw_options_<?php echo $_option->getId() ?>_qty" maxlength="12" value="1" class="input-text qty validate-greater-than-zero" /></label>
+			</span> 
+		<?php }?>
+        <?php if ($_option->getIsRequire()): ?>
+            <?php if ($_option->getType() == Mage_Catalog_Model_Product_Option::OPTION_TYPE_RADIO || $_option->getType() == Mage_Catalog_Model_Product_Option::OPTION_TYPE_CHECKBOX): ?>
+                <span id="options-<?php echo $_option->getId() ?>-container"></span>
+            <?php endif; ?>
+        <?php endif;?>
+    </div>
+</dd>
+<?php }?>

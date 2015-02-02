@@ -1,0 +1,573 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2010 Magento Inc. (http://www.magentocommerce.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<style type="text/css">
+	.mw_active_image {
+	    border: 2px solid #1E7EC8 !important;
+	}
+	.mw_truncated{padding: 0px 5px; position: relative; top: 12px; float: left;}
+	.truncated.mw_truncated .show .item-options{
+	    left: 7px;
+    	top: 10px;
+	}
+	.product-options dt{float: left; margin: 0px 10px 0px 0px}
+	.product-options dd{clear: both;}
+	.clear{clear: both;}
+	.mw_truncated dd{border-bottom: 0px none;}
+</style>
+<?php
+$check_platform = Mage::helper('advancedproductoption') ->getPlatform();
+if($check_platform == 2 || version_compare(Mage::getVersion(),'1.7.0.0','<'))
+{
+ ?>
+
+<?php $_options = Mage::helper('core')->decorateArray($this->getOptions()) ?>
+<?php if (count($_options)):?>
+    <script type="text/javascript">
+    //<![CDATA[
+    var optionFileUpload = {
+        productForm : $('product_addtocart_form'),
+        formAction : '',
+        formElements : {},
+        upload : function(element){
+            this.formElements = this.productForm.select('input', 'select', 'textarea', 'button');
+            this.removeRequire(element.readAttribute('id').sub('option_', ''));
+
+            template = '<iframe id="upload_target" name="upload_target" style="width:0; height:0; border:0;"><\/iframe>';
+
+            Element.insert($('option_'+element.readAttribute('id').sub('option_', '')+'_uploaded_file'), {after: template});
+
+            this.formAction = this.productForm.action;
+
+            var baseUrl = '<?php echo $this->getUrl('*/product/upload') ?>';
+            var urlExt = 'option_id/'+element.readAttribute('id').sub('option_', '');
+
+            this.productForm.action = parseSidUrl(baseUrl, urlExt);
+            this.productForm.target = 'upload_target';
+            this.productForm.submit();
+            this.productForm.target = '';
+            this.productForm.action = this.formAction;
+        },
+        removeRequire : function(skipElementId){
+            for(var i=0; i<this.formElements.length; i++){
+                if (this.formElements[i].readAttribute('id') != 'option_'+skipElementId+'_file' && this.formElements[i].type != 'button') {
+                    this.formElements[i].disabled='disabled';
+                }
+            }
+        },
+        addRequire : function(skipElementId){
+            for(var i=0; i<this.formElements.length; i++){
+                if (this.formElements[i].readAttribute('name') != 'options_'+skipElementId+'_file' && this.formElements[i].type != 'button') {
+                    this.formElements[i].disabled='';
+                }
+            }
+        },
+        uploadCallback : function(data){
+            this.addRequire(data.optionId);
+            $('upload_target').remove();
+
+            if (data.error) {
+
+            } else {
+                $('option_'+data.optionId+'_uploaded_file').value = data.fileName;
+                $('option_'+data.optionId+'_file').value = '';
+                $('option_'+data.optionId+'_file').hide();
+                $('option_'+data.optionId+'').hide();
+                template = '<div id="option_'+data.optionId+'_file_box"><a href="#"><img src="var/options/'+data.fileName+'" alt=""><\/a><a href="#" onclick="optionFileUpload.removeFile('+data.optionId+')" title="Remove file" \/>Remove file<\/a>';
+
+                Element.insert($('option_'+data.optionId+'_uploaded_file'), {after: template});
+            }
+        },
+        removeFile : function(optionId)
+        {
+            $('option_'+optionId+'_uploaded_file').value= '';
+            $('option_'+optionId+'_file').show();
+            $('option_'+optionId+'').show();
+
+            $('option_'+optionId+'_file_box').remove();
+        }
+    }
+    var optionTextCounter = {
+        count : function(field,cntfield,maxlimit){
+            if (field.value.length > maxlimit){
+                field.value = field.value.substring(0, maxlimit);
+            } else {
+                cntfield.innerHTML = maxlimit - field.value.length;
+            }
+        }
+    }
+
+    Product.Options = Class.create();
+    Product.Options.prototype = {
+        initialize : function(config){
+            this.config = config;
+            this.reloadPrice();
+            document.observe("dom:loaded", this.reloadPrice.bind(this));
+        },
+        reloadPrice : function(){
+            price = new Number();
+            config = this.config;
+            skipIds = [];
+            var checkAbsolute = 'no';
+            $$('.product-custom-option').each(function(element){
+                var optionId = 0;
+                element.name.sub(/[0-9]+/, function(match){
+                    optionId = match[0];
+                });
+                if (this.config[optionId]) {
+                    if (element.type == 'checkbox' || element.type == 'radio') {
+                        if (element.checked) {
+                            if (typeof config[optionId][element.getValue()] != 'undefined') {
+                            	if(config[optionId][element.getValue()].type == 'abs' && config[optionId][element.getValue()].price > 0) checkAbsolute = 'yes';
+                            	if(element.type == 'checkbox') mw_name_qty = 'mw_options_'+optionId+'_'+element.getValue()+'_qty';
+                                else if(element.type == 'radio') mw_name_qty = 'mw_options_'+optionId+'_qty';
+                            	if ($(mw_name_qty)) mw_optionQty = parseInt($(mw_name_qty).value); else mw_optionQty = 1;
+                            	if(config[optionId][element.getValue()].type == 'onetime') mw_optionQty = 1;
+                                //price += parseFloat(config[optionId][element.getValue()]);
+                                price += parseFloat(config[optionId][element.getValue()].price * mw_optionQty);
+                            }
+                        }
+                    } else if(element.hasClassName('datetime-picker') && !skipIds.include(optionId)) {
+                        dateSelected = true;
+                        $$('.product-custom-option[id^="options_' + optionId + '"]').each(function(dt){
+                            if (dt.getValue() == '') {
+                                dateSelected = false;
+                            }
+                        });
+                        if(dateSelected) {
+                        	if(this.config[optionId].type == 'abs' && this.config[optionId].price > 0) checkAbsolute = 'yes';
+                            price += parseFloat(this.config[optionId].price);
+                            skipIds[optionId] = optionId;
+                        }
+                    }else if(element.type == 'select-one' || element.type == 'select-multiple') {
+                        if(element.options) {
+                        	// them code vao-------------- qty
+                            $A(element.options).each(function(selectOption){
+                                if(selectOption.selected) {
+                                    if (typeof this.config[optionId][selectOption.value] != 'undefined') {
+                                    	if(this.config[optionId][selectOption.value].type == 'abs' && this.config[optionId][selectOption.value].price > 0) checkAbsolute = 'yes';
+                                    	if ($('mw_options_'+optionId+'_qty')) mw_optionQty = parseInt($('mw_options_'+optionId+'_qty').value); else mw_optionQty = 1;
+                                    	if(this.config[optionId][selectOption.value].type == 'onetime') mw_optionQty = 1;
+                                        price += parseFloat(this.config[optionId][selectOption.value].price * mw_optionQty);
+                                    	//price += parseFloat(this.config[optionId][selectOption.value]);
+                                    }
+                                }
+                            });
+                        }
+                    }else {
+                        if(element.getValue().strip() != '') {
+                        	if(this.config[optionId].type == 'abs' && this.config[optionId].price > 0) checkAbsolute = 'yes';
+                            price += parseFloat(this.config[optionId].price);
+                        }
+                    }
+                }
+            });
+            try {
+            	if(checkAbsolute == 'yes') optionsPrice.productPrice = 0; //else optionsPrice.productPrice = optionsPrice.productOldPrice;
+                optionsPrice.changePrice('options', price);
+                optionsPrice.changePrice('optionsPriceInclTax', price);
+                optionsPrice.reload();
+            } catch (e) {
+
+            }
+        }
+    }
+    function validateOptionsCallback(elmId, result){
+        var container = $(elmId).up('ul.options-list');
+        if (result == 'failed') {
+            container.removeClassName('validation-passed');
+            container.addClassName('validation-failed');
+        } else {
+            container.removeClassName('validation-failed');
+            container.addClassName('validation-passed');
+        }
+    }
+    var opConfig = new Product.Options(<?php echo $this->getJsonConfig() ?>);
+    //]]>
+    </script>
+    <dl>
+    <?php foreach($_options as $_option): ?>
+        <?php echo $this->getOptionHtml($_option) ?>
+    <?php endforeach; ?>
+    </dl>
+<?php endif; ?>
+
+<?php }else{
+?>
+
+
+<?php $_options = Mage::helper('core')->decorateArray($this->getOptions()) ?>
+<?php if (count($_options)):?>
+    <script type="text/javascript">
+    //<![CDATA[
+    var optionFileUpload = {
+        productForm : $('product_addtocart_form'),
+        formAction : '',
+        formElements : {},
+        upload : function(element){
+            this.formElements = this.productForm.select('input', 'select', 'textarea', 'button');
+            this.removeRequire(element.readAttribute('id').sub('option_', ''));
+
+            template = '<iframe id="upload_target" name="upload_target" style="width:0; height:0; border:0;"><\/iframe>';
+
+            Element.insert($('option_'+element.readAttribute('id').sub('option_', '')+'_uploaded_file'), {after: template});
+
+            this.formAction = this.productForm.action;
+
+            var baseUrl = '<?php echo $this->getUrl('*/product/upload') ?>';
+            var urlExt = 'option_id/'+element.readAttribute('id').sub('option_', '');
+
+            this.productForm.action = parseSidUrl(baseUrl, urlExt);
+            this.productForm.target = 'upload_target';
+            this.productForm.submit();
+            this.productForm.target = '';
+            this.productForm.action = this.formAction;
+        },
+        removeRequire : function(skipElementId){
+            for(var i=0; i<this.formElements.length; i++){
+                if (this.formElements[i].readAttribute('id') != 'option_'+skipElementId+'_file' && this.formElements[i].type != 'button') {
+                    this.formElements[i].disabled='disabled';
+                }
+            }
+        },
+        addRequire : function(skipElementId){
+            for(var i=0; i<this.formElements.length; i++){
+                if (this.formElements[i].readAttribute('name') != 'options_'+skipElementId+'_file' && this.formElements[i].type != 'button') {
+                    this.formElements[i].disabled='';
+                }
+            }
+        },
+        uploadCallback : function(data){
+            this.addRequire(data.optionId);
+            $('upload_target').remove();
+
+            if (data.error) {
+
+            } else {
+                $('option_'+data.optionId+'_uploaded_file').value = data.fileName;
+                $('option_'+data.optionId+'_file').value = '';
+                $('option_'+data.optionId+'_file').hide();
+                $('option_'+data.optionId+'').hide();
+                template = '<div id="option_'+data.optionId+'_file_box"><a href="#"><img src="var/options/'+data.fileName+'" alt=""><\/a><a href="#" onclick="optionFileUpload.removeFile('+data.optionId+')" title="Remove file" \/>Remove file<\/a>';
+
+                Element.insert($('option_'+data.optionId+'_uploaded_file'), {after: template});
+            }
+        },
+        removeFile : function(optionId)
+        {
+            $('option_'+optionId+'_uploaded_file').value= '';
+            $('option_'+optionId+'_file').show();
+            $('option_'+optionId+'').show();
+
+            $('option_'+optionId+'_file_box').remove();
+        }
+    }
+    var optionTextCounter = {
+        count : function(field,cntfield,maxlimit){
+            if (field.value.length > maxlimit){
+                field.value = field.value.substring(0, maxlimit);
+            } else {
+                cntfield.innerHTML = maxlimit - field.value.length;
+            }
+        }
+    }
+
+    Product.Options = Class.create();
+    Product.Options.prototype = {
+        initialize : function(config) {
+            this.config = config;
+            this.reloadPrice();
+            document.observe("dom:loaded", this.reloadPrice.bind(this));
+        },
+        reloadPrice : function() {
+            var config = this.config;
+            var skipIds = [];
+            var checkAbsolute = 'no';
+            $$('body .product-custom-option').each(function(element){
+                var optionId = 0;
+                element.name.sub(/[0-9]+/, function(match){
+                    optionId = parseInt(match[0], 10);
+                });
+                if (config[optionId]) {
+                    var configOptions = config[optionId];
+                    var curConfig = {price: 0};
+                    if (element.type == 'checkbox' || element.type == 'radio') {
+                        if (element.checked) {
+                            if (typeof configOptions[element.getValue()] != 'undefined') {
+                            	if(configOptions[element.getValue()].type == 'abs' && configOptions[element.getValue()].price > 0) checkAbsolute = 'yes';
+                                if(element.type == 'checkbox') mw_name_qty = 'mw_options_'+optionId+'_'+element.getValue()+'_qty';
+                                else if(element.type == 'radio') mw_name_qty = 'mw_options_'+optionId+'_qty';
+                            	if ($(mw_name_qty)) mw_optionQty = parseInt($(mw_name_qty).value); else mw_optionQty = 1;
+                                //curConfig = configOptions[element.getValue()];
+                            	if(configOptions[element.getValue()].type == 'onetime') mw_optionQty = 1;
+                            	curConfig = {price: configOptions[element.getValue()].price * mw_optionQty};
+                            }
+                        }
+                    } else if(element.hasClassName('datetime-picker') && !skipIds.include(optionId)) {
+                        dateSelected = true;
+                        $$('.product-custom-option[id^="options_' + optionId + '"]').each(function(dt){
+                            if (dt.getValue() == '') {
+                                dateSelected = false;
+                            }
+                        });
+                        if (dateSelected) {
+                            curConfig = configOptions;
+                            if(curConfig.type == 'abs' && curConfig.price > 0) checkAbsolute = 'yes';
+                            skipIds[optionId] = optionId;
+                        }
+                    } else if(element.type == 'select-one' || element.type == 'select-multiple') {
+                        if ('options' in element) {
+                            $A(element.options).each(function(selectOption){
+                                if ('selected' in selectOption && selectOption.selected) {
+                                    if (typeof(configOptions[selectOption.value]) != 'undefined') {
+                                        if(configOptions[selectOption.value].type == 'abs' && configOptions[selectOption.value].price > 0) checkAbsolute = 'yes' ;
+                                    	if ($('mw_options_'+optionId+'_qty')) mw_optionQty = parseInt($('mw_options_'+optionId+'_qty').value); else mw_optionQty = 1;
+                                    	//configOptions[selectOption.value].includeTax = configOptions[selectOption.value].includeTax *2;
+                                    	//configOptions[selectOption.value].excludeTax = configOptions[selectOption.value].excludeTax *2;
+                                        //curConfig = configOptions[selectOption.value];
+                                    	if(configOptions[selectOption.value].type == 'onetime') mw_optionQty = 1;
+                                    	curConfig = {price: configOptions[selectOption.value].price * mw_optionQty};
+                                    }
+                                }
+                            });
+                        }
+                    } else {
+                        if (element.getValue().strip() != '') {
+                            curConfig = configOptions;
+                        }
+                    }
+                    if(element.type == 'select-multiple' && ('options' in element)) {
+                        $A(element.options).each(function(selectOption) {
+                            if (('selected' in selectOption) && typeof(configOptions[selectOption.value]) != 'undefined') {
+	                           	if(configOptions[selectOption.value].type == 'abs'&& configOptions[selectOption.value].price > 0) checkAbsolute = 'yes' ;
+                            	if ($('mw_options_'+optionId+'_qty')) mw_optionQty = parseInt($('mw_options_'+optionId+'_qty').value); else mw_optionQty = 1;
+                            	if(configOptions[selectOption.value].type == 'onetime') mw_optionQty = 1 ;
+                            	
+                                if (selectOption.selected) {
+                                    //curConfig = configOptions[selectOption.value];
+                                	curConfig = {price: configOptions[selectOption.value].price * mw_optionQty};
+                                } else {
+                                    curConfig = {price: 0};
+                                }
+                                if (checkAbsolute == 'yes') optionsPrice.productPrice = 0; else optionsPrice.productPrice = optionsPrice.productOldPrice;
+                                optionsPrice.addCustomPrices(optionId + '-' + selectOption.value, curConfig);
+                                optionsPrice.reload();
+                            }
+                        });
+                    } else {
+                        if(curConfig.type == 'abs' && curConfig.price > 0) checkAbsolute = 'yes';
+                    	if (checkAbsolute == 'yes') optionsPrice.productPrice = 0; //else optionsPrice.productPrice = optionsPrice.productOldPrice;
+                        optionsPrice.addCustomPrices(element.id || optionId, curConfig);
+                        optionsPrice.reload();
+                    }
+                }
+            });
+        }
+    }
+    function validateOptionsCallback(elmId, result) {
+        var container = $(elmId).up('ul.options-list');
+        if (result == 'failed') {
+            container.removeClassName('validation-passed');
+            container.addClassName('validation-failed');
+        } else {
+            container.removeClassName('validation-failed');
+            container.addClassName('validation-passed');
+        }
+    }
+    var opConfig = new Product.Options(<?php echo $this->getJsonConfig() ?>);
+    //]]>
+    </script>
+    <dl>
+    <?php foreach($_options as $_option): ?>
+        <?php echo $this->getOptionHtml($_option) ?>
+    <?php endforeach; ?>
+    </dl>
+<?php endif; ?>
+
+
+
+
+<?php } // ket thuc them vao----------------?>
+<script type="text/javascript">
+//<![CDATA[
+
+var mw_selectOptionType = {
+	showImage : function(strId)
+    {	 
+    	if(strId != ""){
+	    	var id = strId.split('_');
+		 	var optionId = id[1];
+		 	var mw_type = $(strId).type;
+		 	var mw_option_type_id = $(strId).value;
+		 	var mw_image_name = 'mw_image_select_'+optionId+'_'+mw_option_type_id;
+		 	var mw_class_image_name = '.mw_class_image_select_'+optionId;
+		 	//kieu la radio
+		 	if(mw_type == 'radio' && mw_option_type_id != "" && optionId != "" ){
+		 		 if($$(mw_class_image_name))  $$(mw_class_image_name).invoke('setStyle', { display:'none'}); 
+				 if($(mw_image_name)) $(mw_image_name).show();
+		 	}
+		 	// kieu la check box
+		 	if(mw_type == 'checkbox'){
+		 		var mw_checked = $(strId).checked;
+			 	if(mw_option_type_id != "" && mw_checked == true){
+			 		 if($(mw_image_name)) $(mw_image_name).show();
+			 	}
+			 	else if(mw_option_type_id != "" && mw_checked == false){
+				 	
+			 		 if($(mw_image_name)) $(mw_image_name).hide();
+			 	}
+		 	}
+		 	// kieu la select
+		 	var NodeList = $(strId).getElementsByTagName('option');
+	 	    var nodes = $A(NodeList);
+		 		nodes.each(function(node){
+		 	       //alert(node.nodeName + ': ' + node.selected + ':'+ node.value );
+		 	       if(node.value != "" && node.selected == true ){
+			 	    	 var mw_image_name = 'mw_image_select_'+optionId+'_'+node.value;
+				 	     if($(mw_image_name)) $(mw_image_name).show();
+		 	       }else if(node.value != "" && node.selected == false ){
+			 	    	  var mw_image_name = 'mw_image_select_'+optionId+'_'+node.value;
+				 	      if($(mw_image_name)) $(mw_image_name).hide();
+		 	       }else if(node.value == ""){
+			 	    	  if(optionId != ""){
+				 	    		 if($$(mw_class_image_name)) $$(mw_class_image_name).invoke('setStyle', { display:'none'});
+			 	    	  }	
+		 	       }
+		 	   });
+    	}
+
+    },
+	// theo kieu hien thi 2----------
+	showImageNew : function(strId)
+	{
+    	if(strId != ""){
+	    	var id = strId.split('_');
+		 	var optionId = id[1];
+		 	var mw_type = $(strId).type;
+		 	var mw_option_type_id = $(strId).value;
+		 	var mw_image_name = 'mw_image_select_'+optionId+'_'+mw_option_type_id;
+		 	var mw_class_image_name = '.mw_class_image_select_'+optionId;
+		 	
+		 	//truong hop la radio
+		 	if(mw_type == 'radio' && optionId != "" && mw_option_type_id == ""){
+		 		if($$(mw_class_image_name))  $$(mw_class_image_name).invoke('removeClassName', 'mw_active_image'); 
+		 	}
+		 	if(mw_type == 'radio' && mw_option_type_id != "" && optionId != "" ){
+		 		var mw_radio = $(strId).checked;
+		 		if($$(mw_class_image_name))  $$(mw_class_image_name).invoke('removeClassName', 'mw_active_image'); 
+		 		if($(mw_image_name)  && mw_radio == true && $(strId).value != "") $(mw_image_name).addClassName('mw_active_image');
+		 		else if($(mw_image_name)  && mw_radio == false){
+		 			if($(mw_image_name).hasClassName('mw_active_image')== true)$(mw_image_name).removeClassName('mw_active_image');
+		 		}
+		 	}
+		 	// truong hop kieu la checkbox
+		 	if(mw_type == 'checkbox'){
+		 		var mw_checked = $(strId).checked;
+			 	if(mw_option_type_id != "" && mw_checked == true){
+			 		 if($(mw_image_name)) $(mw_image_name).addClassName('mw_active_image');
+			 	}
+			 	else if($(mw_image_name)  && mw_option_type_id != "" && mw_checked == false){
+			 		if($(mw_image_name).hasClassName('mw_active_image')== true)$(mw_image_name).removeClassName('mw_active_image');
+			 	}
+		 	}
+			// truong hop la select
+		 	var NodeList = $(strId).getElementsByTagName('option');
+	 	    var nodes = $A(NodeList);
+		 		nodes.each(function(node){
+		 	       //alert(node.nodeName + ': ' + node.selected + ':'+ node.value );
+		 	       if(node.value != "" && node.selected == true ){
+			 	    	 var mw_image_name = 'mw_image_select_'+optionId+'_'+node.value;
+				 	     if($(mw_image_name)) $(mw_image_name).addClassName('mw_active_image');
+		 	       }else if(node.value != "" && node.selected == false ){
+			 	    	  var mw_image_name = 'mw_image_select_'+optionId+'_'+node.value;
+				 	      if($(mw_image_name)) {
+					 	    	 if($(mw_image_name).hasClassName('mw_active_image')== true)$(mw_image_name).removeClassName('mw_active_image') ;   
+					 	  }
+		 	       }else if(node.value == ""){
+			 	    	  if(optionId != ""){
+				 	    		 if($$(mw_class_image_name)){
+					 	    			$$(mw_class_image_name).invoke('removeClassName', 'mw_active_image'); 
+				 	    		 }
+			 	    	  }	
+		 	       }
+		 	   });
+
+			 	   
+    	}	
+	},
+	clickImage : function(strId)
+	{
+    	if(strId != ""){
+	    	var id = strId.split('_');
+		 	var optionId = id[3];
+		 	var mw_option_type_id = id[4];
+		 	//alert (mw_option_type_id);
+		 	// truong hop la radio mw_class_96_128
+		 	var mw_class_radio = '.mw_class_'+optionId;
+		 	if($$(mw_class_radio)){
+		 		var fs = $$(mw_class_radio);
+		 		fs.each(function(f){
+		 			if(f.value == mw_option_type_id){
+				 		if($(f.id).type =='checkbox'){
+					 		//alert($(f.id).checked);
+					 		if($(f.id).checked == false) f.checked = true;
+					 		else if($(f.id).checked == true)f.checked = false;
+				 			$(f.id).onclick();
+					 		
+				 		}else if($(f.id).type =='radio'){
+				 			f.checked = true;
+				 			$(f.id).onclick();
+				 		}
+		 			}
+		 		 });
+		 		
+		 	}
+		 	// truong hop la select
+		 	var mw_name_select = 'select_'+optionId;
+		 	if($(mw_name_select)){
+			 	var NodeList = $(mw_name_select).getElementsByTagName('option');
+		 	    var nodes = $A(NodeList);
+			 		nodes.each(function(node){
+			 			if(node.value == mw_option_type_id){
+				 			 //node.selected = true;
+			 				if(node.selected == true) node.selected = false;
+			 				else if(node.selected == false) node.selected = true;
+					 			$(mw_name_select).onchange();
+			 			}
+			 		 });
+		 	}
+	 	   
+    	}	
+	},
+	// ket thuc kieu 2------------------------
+
+
+	
+		
+}
+
+//]]>
+</script>

@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <advancedproductoption_adminhtml_advancedproductoption_index>
+        <reference name="content">
+            <block type="advancedproductoption/adminhtml_template" name="mw_template" />
+        </reference>
+    </advancedproductoption_adminhtml_advancedproductoption_index>
+    <advancedproductoption_adminhtml_advancedproductoption_options>
+        <block type="core/text_list" name="root" output="toHtml">
+            <block type="advancedproductoption/adminhtml_template_edit_tab_options" name="template_custom_group" />
+        </block>
+    </advancedproductoption_adminhtml_advancedproductoption_options>
+    <advancedproductoption_adminhtml_advancedproductoption_product>
+        <block type="core/text_list" name="root">
+            <block type="advancedproductoption/adminhtml_template_edit_tab_product" name="template_edit_tab_product"/>
+            <block type="adminhtml/widget_grid_serializer" name="upsell_grid_serializer">
+                <reference name="upsell_grid_serializer">
+                    <action method="initSerializerBlock">
+                        <grid_block_name>template_edit_tab_product</grid_block_name>
+                        <data_callback>getSelectedAddProducts</data_callback>
+                        <hidden_input_name>addproduct[template]</hidden_input_name>
+                        <reload_param_name>products_add</reload_param_name>
+                    </action>
+                     <action method="addColumnInputName">
+                        <input_name>position</input_name>
+                    </action>
+                </reference>
+            </block>
+        </block>
+    </advancedproductoption_adminhtml_advancedproductoption_product>
+</layout>
